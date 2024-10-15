@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import {
   Animated,
   Dimensions,
@@ -12,7 +11,7 @@ import {
   NativeMethods,
   StyleProp,
   ViewStyle,
-  LayoutChangeEvent
+  LayoutChangeEvent,
 } from 'react-native';
 
 export enum Position {
@@ -21,7 +20,7 @@ export enum Position {
   TOP_CENTER,
   BOTTOM_LEFT,
   BOTTOM_RIGHT,
-  BOTTOM_CENTER
+  BOTTOM_CENTER,
 }
 
 export interface Offset {
@@ -44,7 +43,7 @@ const enum STATES {
   CALCULATING,
   SHOWN,
   HIDDEN,
-  ANIMATING
+  ANIMATING,
 }
 
 type PositionShift = {
@@ -82,7 +81,7 @@ const normalizeOffset = (extraOffset: Offset): PositionShift => {
 const getSummarizedOffset = (offsetList: PositionShift[]) => {
   const reducer = (acc: PositionShift, { left, top }: PositionShift) => ({
     left: acc.left + left,
-    top: acc.top + top
+    top: acc.top + top,
   });
   return offsetList.reduce(reducer, { left: 0, top: 0 });
 };
@@ -140,7 +139,8 @@ const getComputedOffset = (
 interface Props {
   testID?: string;
   style?: StyleProp<ViewStyle>;
-  onHidden?: () => {};
+  children?: React.ReactNode | React.ReactNode[];
+  onHidden?: () => object;
 }
 
 interface State {
@@ -169,28 +169,28 @@ export class Menu extends React.Component<Props, State> {
         left: 0,
         top: 0,
         width: 0,
-        height: 0
+        height: 0,
       },
       menu: {
         left: 0,
         top: 0,
         width: 0,
-        height: 0
+        height: 0,
       },
       offsets: {
         staticOffset: {
           left: 0,
-          top: 0
+          top: 0,
         },
         computedOffset: {
           left: 0,
-          top: 0
-        }
+          top: 0,
+        },
       },
       animation: {
         menuSize: new Animated.ValueXY({ x: 0, y: 0 }),
-        opacity: new Animated.Value(0)
-      }
+        opacity: new Animated.Value(0),
+      },
     };
   }
 
@@ -207,7 +207,7 @@ export class Menu extends React.Component<Props, State> {
       const allOffsets = [
         baseOffset,
         offsets.staticOffset,
-        offsets.computedOffset
+        offsets.computedOffset,
       ];
       const finalOffset = getSummarizedOffset(allOffsets);
       this.setState({
@@ -215,14 +215,14 @@ export class Menu extends React.Component<Props, State> {
         menu: {
           ...menu,
           left: finalOffset.left,
-          top: finalOffset.top
-        }
+          top: finalOffset.top,
+        },
       });
     } else if (menuState === STATES.SHOWN) {
       const { animation } = this.state;
       this.setState(
         {
-          menuState: STATES.ANIMATING
+          menuState: STATES.ANIMATING,
         },
         () => {
           Animated.parallel([
@@ -230,14 +230,14 @@ export class Menu extends React.Component<Props, State> {
               toValue: { x: menu.width, y: menu.height },
               duration: ANIMATION_DURATION,
               easing: EASING,
-              useNativeDriver: false
+              useNativeDriver: false,
             }),
             Animated.timing(animation.opacity, {
               toValue: 1,
               duration: ANIMATION_DURATION,
               easing: EASING,
-              useNativeDriver: false
-            })
+              useNativeDriver: false,
+            }),
           ]).start();
         }
       );
@@ -290,9 +290,9 @@ export class Menu extends React.Component<Props, State> {
               ...(extraOffset
                 ? { staticOffset: normalizeOffset(extraOffset) }
                 : {}),
-              ...(computedOffset ? { computedOffset } : {})
+              ...(computedOffset ? { computedOffset } : {}),
             },
-            ...(stickTo ? { stickTo } : {})
+            ...(stickTo ? { stickTo } : {}),
           };
           this.setState(newState);
         }
@@ -311,8 +311,8 @@ export class Menu extends React.Component<Props, State> {
         menu: {
           ...menu,
           width,
-          height
-        }
+          height,
+        },
       });
     }
   };
@@ -329,7 +329,7 @@ export class Menu extends React.Component<Props, State> {
       toValue: 0,
       duration: ANIMATION_DURATION,
       easing: EASING,
-      useNativeDriver: false
+      useNativeDriver: false,
     }).start(() => {
       /* Reset state */
       this.setState(
@@ -338,8 +338,8 @@ export class Menu extends React.Component<Props, State> {
           animation: {
             ...animation,
             menuSize: new Animated.ValueXY({ x: 0, y: 0 }),
-            opacity: new Animated.Value(0)
-          }
+            opacity: new Animated.Value(0),
+          },
         },
         () => {
           /* Invoke onHidden callback if defined */
@@ -356,7 +356,7 @@ export class Menu extends React.Component<Props, State> {
     const { menu, component, animation } = this.state;
     const menuSize = {
       width: animation.menuSize.x,
-      height: animation.menuSize.y
+      height: animation.menuSize.y,
     };
 
     /* Adjust position of menu */
@@ -365,7 +365,7 @@ export class Menu extends React.Component<Props, State> {
     /* Flip by X axis if menu hits right screen border */
     if (menu.left > dimensions.width - menu.width - SCREEN_INDENT) {
       transforms.push({
-        translateX: Animated.multiply(animation.menuSize.x, -1)
+        translateX: Animated.multiply(animation.menuSize.x, -1),
       });
 
       menu.left = Math.min(
@@ -377,7 +377,7 @@ export class Menu extends React.Component<Props, State> {
     /* Flip by Y axis if menu hits bottom screen border */
     if (menu.top > dimensions.height - menu.height - SCREEN_INDENT) {
       transforms.push({
-        translateY: Animated.multiply(animation.menuSize.y, -1)
+        translateY: Animated.multiply(animation.menuSize.y, -1),
       });
 
       menu.top = Math.min(
@@ -390,7 +390,7 @@ export class Menu extends React.Component<Props, State> {
       opacity: animation.opacity,
       transform: transforms,
       left: menu.left,
-      top: menu.top
+      top: menu.top,
     };
 
     const { menuState } = this.state;
@@ -413,11 +413,10 @@ export class Menu extends React.Component<Props, State> {
             'portrait-upside-down',
             'landscape',
             'landscape-left',
-            'landscape-right'
+            'landscape-right',
           ]}
           transparent
-          onDismiss={this._onDismiss}
-        >
+          onDismiss={this._onDismiss}>
           <TouchableWithoutFeedback onPress={this.hide}>
             <View style={StyleSheet.absoluteFill}>
               <Animated.View
@@ -425,12 +424,10 @@ export class Menu extends React.Component<Props, State> {
                 style={[
                   styles.shadowMenuContainer,
                   shadowMenuContainerStyle,
-                  style
-                ]}
-              >
+                  style,
+                ]}>
                 <Animated.View
-                  style={[styles.menuContainer, animationStarted && menuSize]}
-                >
+                  style={[styles.menuContainer, animationStarted && menuSize]}>
                   {children}
                 </Animated.View>
               </Animated.View>
@@ -455,14 +452,14 @@ const styles = StyleSheet.create({
         shadowColor: 'black',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.14,
-        shadowRadius: 2
+        shadowRadius: 2,
       },
       android: {
-        elevation: 8
-      }
-    })
+        elevation: 8,
+      },
+    }),
   },
   menuContainer: {
-    overflow: 'hidden'
-  }
+    overflow: 'hidden',
+  },
 });
